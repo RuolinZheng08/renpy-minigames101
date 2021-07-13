@@ -34,8 +34,11 @@ init python:
             self.horizontal_bar_height = 8
 
             self.note_width = 50
+            # zoom in on the note when it is hittable
+            self.zoom_scale = 1.2
             # offset the note to the right so it shows at the center of the track
             self.note_xoffset = (self.track_bar_width - self.note_width) / 2
+            self.note_xoffset_large = (self.track_bar_width - self.note_width * self.zoom_scale) / 2
 
             # since the notes are scrolling from the screen top to bottom
             # they appear on the tracks prior to the onset time
@@ -105,12 +108,20 @@ init python:
             3: Image('right.png')
             }
 
+            self.note_drawables_large = {
+            0: Transform(self.note_drawables[0], zoom=self.zoom_scale),
+            1: Transform(self.note_drawables[1], zoom=self.zoom_scale),
+            2: Transform(self.note_drawables[2], zoom=self.zoom_scale),
+            3: Transform(self.note_drawables[3], zoom=self.zoom_scale),
+            }
+
             # record all the drawables for self.visit
             self.drawables = [
             self.track_bar_drawable,
             self.horizontal_bar_drawable,
             ]
             self.drawables.extend(list(self.note_drawables.values()))
+            self.drawables.extend(list(self.note_drawables_large.values()))
 
         def render(self, width, height, st, at):
             """
@@ -162,10 +173,15 @@ init python:
                     for onset, note_timestamp in self.active_notes_per_track[track_idx]:
                         # render the notes that are active and haven't been hit
                         if self.onset_hits[onset] is False:
-                            # look up the direction of the arrow on the note image by the track_idx
-                            note_drawable = self.note_drawables[track_idx]
-                            # compute where on the horizontal and vertical axes the note is
-                            note_xoffset = x_offset + self.note_xoffset
+                            # zoom in on the note if it is within the hit threshold
+                            if abs(curr_time - onset) <= self.hit_threshold:
+                                note_drawable = self.note_drawables_large[track_idx]
+                                note_xoffset = x_offset + self.note_xoffset_large 
+                            else:
+                                note_drawable = self.note_drawables[track_idx]
+                                note_xoffset = x_offset + self.note_xoffset
+
+                            # compute where on the vertical axes the note is
                             # the vertical distance from the top that the note has already traveled
                             # is given by time * speed
                             note_distance_from_top = note_timestamp * self.note_speed
