@@ -1,33 +1,30 @@
-﻿# The script of the game goes in this file.
-
-# Declare characters used by this game. The color argument colorizes the
-# name of the character.
-
-define e = Character("Eileen")
-
-
-# The game starts here.
+﻿define e = Character("Eileen")
 
 label start:
-
-    # Show a background. This uses a placeholder by default, but you can
-    # add a file (named either "bg room.png" or "bg room.jpg") to the
-    # images directory to show it.
-
     scene bg room
+    e "Let's play a rhythm game!"
 
-    # This shows a character sprite. A placeholder is used, but you can
-    # replace it by adding a file named "eileen happy.png" to the images
-    # directory.
+    # start the rhythm game
+    # window hide
+    $ quick_menu = False
 
-    show eileen happy
+    # avoid rolling back and losing game state
+    $ renpy.block_rollback()
+    
+    call screen rhythm_game(
+        'audio/music-by-tallbeard.wav', 
+        'audio/music-by-tallbeard.beatmap.txt'
+        )
+    # avoid rolling back and entering the game again
+    $ renpy.block_rollback()
 
-    # These display lines of dialogue.
+    # restore rollback from this point on
+    $ renpy.checkpoint()
 
-    e "You've created a new Ren'Py game."
+    $ quick_menu = True
+    window show
 
-    e "Once you add a story, pictures, and music, you can release it to the world!"
-
-    # This ends the game.
+    $ num_hits, num_notes = _return
+    e "You hit [num_hits] notes out of [num_notes]. Good work!"
 
     return
