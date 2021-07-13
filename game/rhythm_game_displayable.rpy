@@ -1,15 +1,19 @@
-screen rhythm_game():
-    default rhythm_game_displayble = RhythmGameDisplayable()
+screen rhythm_game(audio_path, beatmap_path):
+    default rhythm_game_displayble = RhythmGameDisplayable(audio_path, beatmap_path)
 
     add Solid('#000')
     add rhythm_game_displayble
 
 init python:
+
+    import os
     
     class RhythmGameDisplayable(renpy.Displayable):
 
-        def __init__(self):
+        def __init__(self, audio_path, beatmap_path):
             super(RhythmGameDisplayable, self).__init__()
+
+            self.audio_path = audio_path
 
             self.has_started = False
             # the first st
@@ -52,11 +56,17 @@ init python:
             }
 
             # define the notes' onset times
-            self.onset_times = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+            self.onset_times = self.read_beatmap_file(beatmap_path)
+            # can skip onsets to adjust difficulty level
+            # skip every other onset so the display is less dense
+            self.onset_times = self.onset_times[::2]
 
             self.num_notes = len(self.onset_times)
             # assign notes to tracks, same length as self.onset_times
-            self.random_track_indices = [0, 1, 2, 3, 0, 1]
+            # renpy.random.randint is upper-inclusive
+            self.random_track_indices = [
+            renpy.random.randint(0, self.num_track_bars - 1) for _ in range(self.num_notes)
+            ]
 
             # map track_idx to a list of active note timestamps
             self.active_notes_per_track = {
@@ -81,9 +91,6 @@ init python:
             ]
             self.drawables.extend(list(self.note_drawables.values()))
 
-            # play music here
-            self.has_started = True
-
         def render(self, width, height, st, at):
             """
             st: A float, the shown timebase, in seconds. 
@@ -91,8 +98,11 @@ init python:
             """
             # cache the first st, when this displayable is first shown on the screen
             # this allows us to compute subsequent times when the notes should appear
-            if self.has_started and self.time_offset is None:
+            if self.time_offset is None:
                 self.time_offset = st
+                # play music here
+                renpy.play(self.audio_path)
+                self.has_started = True
 
             render = renpy.Render(width, height)
 
@@ -162,3 +172,11 @@ init python:
                     break
 
             return active_notes
+
+        def read_beatmap_file(self, beatmap_path):
+            # read newline separated floats
+            beatmap_path_full = os.path.join(config.gamedir, beatmap_path)
+            with open(beatmap_path_full, 'rt') as f:
+                text = f.read()
+            onset_times = [float(string) for string in text.split('\n') if string != '']
+            return onset_times

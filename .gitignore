@@ -1,3 +1,6 @@
+# venv
+generate_beatmap/py39-aubio-librosa
+
 # macOS-related files
 .DS_Store
 .AppleDouble
