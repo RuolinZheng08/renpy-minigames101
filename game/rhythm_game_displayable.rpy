@@ -7,6 +7,7 @@ screen rhythm_game(audio_path, beatmap_path):
 init python:
 
     import os
+    import pygame
     
     class RhythmGameDisplayable(renpy.Displayable):
 
@@ -16,6 +17,7 @@ init python:
             self.audio_path = audio_path
 
             self.has_started = False
+            self.has_ended = False
             # the first st
             # an offset is necessary because there might be a delay between when the
             # displayable first appears on screen and the time the music starts playing
@@ -73,6 +75,25 @@ init python:
             track_idx: [] for track_idx in range(self.num_track_bars)
             }
 
+            # detect and record hits
+            # map onset timestamp to whether it has been hit, initialized to False
+            self.onset_hits = {
+            onset: False for onset in self.onset_times
+            }
+            self.num_hits = 0
+            # if the note is hit within 0.3 seconds of its actual onset time
+            # we consider it a hit
+            # can set different threshold for Good, Great hit scoring
+            self.hit_threshold = 0.3 # seconds
+
+            # map pygame key code to track idx
+            self.keycode_to_track_idx = {
+            pygame.K_LEFT: 0,
+            pygame.K_UP: 1,
+            pygame.K_DOWN: 2,
+            pygame.K_RIGHT: 3
+            }
+
             # define the drawables
             self.track_bar_drawable = Solid('#fff', xsize=self.track_bar_width, ysize=self.track_bar_height)
             self.horizontal_bar_drawable = Solid('#fff', xsize=config.screen_width, ysize=self.horizontal_bar_height)
@@ -119,6 +140,12 @@ init python:
 
             # draw the notes
             if self.has_started:
+                # check if the song has ended
+                if renpy.music.get_playing is None:
+                    self.has_ended = True
+                    renpy.timeout(0) # raise an event
+                    return render
+
                 # the number of seconds the song has been playing
                 # is the difference between the current shown time and the cached first st
                 curr_time = st - self.time_offset
@@ -133,21 +160,51 @@ init python:
 
                     # loop through active notes
                     for onset, note_timestamp in self.active_notes_per_track[track_idx]:
-                        # look up the direction of the arrow on the note image by the track_idx
-                        note_drawable = self.note_drawables[track_idx]
-                        # compute where on the horizontal and vertical axes the note is
-                        note_xoffset = x_offset + self.note_xoffset
-                        # the vertical distance from the top that the note has already traveled
-                        # is given by time * speed
-                        note_distance_from_top = note_timestamp * self.note_speed
-                        y_offset = self.track_bar_height - note_distance_from_top
-                        render.place(note_drawable, x=note_xoffset, y=y_offset)
+                        # render the notes that are active and haven't been hit
+                        if self.onset_hits[onset] is False:
+                            # look up the direction of the arrow on the note image by the track_idx
+                            note_drawable = self.note_drawables[track_idx]
+                            # compute where on the horizontal and vertical axes the note is
+                            note_xoffset = x_offset + self.note_xoffset
+                            # the vertical distance from the top that the note has already traveled
+                            # is given by time * speed
+                            note_distance_from_top = note_timestamp * self.note_speed
+                            y_offset = self.track_bar_height - note_distance_from_top
+                            render.place(note_drawable, x=note_xoffset, y=y_offset)
+                        else:
+                            # we will show the hit text later
+                            continue
 
             renpy.redraw(self, 0)
             return render
 
         def event(self, ev, x, y, st):
-            pass
+            if self.has_ended:
+                # refresh the screen
+                renpy.restart_interaction()
+                return
+            # check if some keys have been pressed
+            if ev.type == pygame.KEYDOWN:
+                # only handle the four keys we defined
+                if not ev.key in self.keycode_to_track_idx:
+                    return
+                # look up the track that correponds to the key pressed
+                track_idx = self.keycode_to_track_idx[ev.key]
+
+                active_notes_on_track = self.active_notes_per_track[track_idx]
+                curr_time = st - self.time_offset
+
+                # loop over active notes to check if one is hit
+                for onset, _ in active_notes_on_track:
+                    # compute the time difference between when the key is pressed
+                    # and when we consider the note hittable as defined by self.hit_threshold
+                    if abs(curr_time - onset) <= self.hit_threshold:
+                        self.onset_hits[onset] = True
+                        self.num_hits += 1
+                        # redraw immediately because now the note should disappear from screen
+                        renpy.redraw(self, 0)
+                        # refresh the screen
+                        renpy.restart_interaction()
 
         def visit(self):
             return self.drawables
