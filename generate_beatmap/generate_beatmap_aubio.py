@@ -31,7 +31,7 @@ def get_onset_times(file_path):
     return onset_times
 
 def main():
-    file_path = '../game/audio/music-by-tallbeard.wav'
+    file_path = '../game/audio/my-music.mp3'
     onset_times = get_onset_times(file_path)
     # remove extension, .mp3, .wav etc.
     file_name_no_extension, _ = os.path.splitext(file_path)

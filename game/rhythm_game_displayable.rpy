@@ -64,7 +64,7 @@ init python:
             self.onset_times = self.read_beatmap_file(beatmap_path)
             # can skip onsets to adjust difficulty level
             # skip every other onset so the display is less dense
-            self.onset_times = self.onset_times[::2]
+            # self.onset_times = self.onset_times[::2]
 
             self.num_notes = len(self.onset_times)
             # assign notes to tracks, same length as self.onset_times
