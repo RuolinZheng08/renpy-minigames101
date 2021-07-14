@@ -4,7 +4,7 @@ import librosa
 # https://musicinformationretrieval.com/onset_detection.html
 
 def main():
-    file_path = '../game/audio/music-by-tallbeard.wav'
+    file_path = '../game/audio/my-music.ogg'
     x, sr = librosa.load(file_path)
     onset_frames = librosa.onset.onset_detect(x, sr=sr, wait=1, pre_avg=1, post_avg=1, pre_max=1, post_max=1)
     onset_times = librosa.frames_to_time(onset_frames)

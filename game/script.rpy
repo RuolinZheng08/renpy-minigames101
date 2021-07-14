@@ -12,8 +12,8 @@ label start:
     $ renpy.block_rollback()
     
     call screen rhythm_game(
-        'audio/music-by-tallbeard.wav', 
-        'audio/music-by-tallbeard.beatmap.txt'
+        'audio/my-music.ogg', 
+        'audio/my-music.beatmap.txt'
         )
     # avoid rolling back and entering the game again
     $ renpy.block_rollback()
