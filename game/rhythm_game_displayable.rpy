@@ -4,18 +4,16 @@ screen rhythm_game(audio_path, beatmap_path):
     add Solid('#000')
     add rhythm_game_displayble
 
+    # show the score heads-up display (HUD)
+    text 'Hits: ' + str(rhythm_game_displayble.num_hits):
+        color '#fff' xpos 50 ypos 50
+
     # return the number of hits and total number of notes to the main game
     if rhythm_game_displayble.has_ended:
         # use a timer so the player can see the screen before it returns
         timer 2.0 action Return(
             (rhythm_game_displayble.num_hits, rhythm_game_displayble.num_notes)
             )
-
-    # show the score heads-up display (HUD)
-    fixed xpos 50 ypos 50 spacing 100:
-        vbox:
-            text 'Hits: ' + str(rhythm_game_displayble.num_hits):
-                color '#fff'
 
 init python:
 
