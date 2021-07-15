@@ -133,7 +133,7 @@ init python:
             if self.time_offset is None:
                 self.time_offset = st
                 # play music here
-                renpy.play(self.audio_path)
+                renpy.music.play(self.audio_path, loop=False)
                 self.has_started = True
 
             render = renpy.Render(width, height)
@@ -152,7 +152,7 @@ init python:
             # draw the notes
             if self.has_started:
                 # check if the song has ended
-                if renpy.music.get_playing is None:
+                if renpy.music.get_playing() is None:
                     self.has_ended = True
                     renpy.timeout(0) # raise an event
                     return render
