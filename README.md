@@ -1,6 +1,6 @@
 # Ren'Py Minigames 101: A Udemy Course
 
-This is the course material for my Udemy course, **[Ren'Py Minigames 101]**(). Even if you aren't taking the course, I hope you will find the content helpful! Check out [my YouTube promotional video]() or the free previews on Udemy to learn more. You can also find the material on [itch.io]().
+This is the course material for my Udemy course, **[Ren'Py Minigames 101]**(https://www.udemy.com/course/renpy-minigames/?referralCode=46F88E557D14A0FDD973). Even if you aren't taking the course, I hope you will find the content helpful! Check out [my YouTube promotional video]() or the free previews on Udemy to learn more. You can also find the material on [itch.io]().
 
 ## What We Will Learn
 
